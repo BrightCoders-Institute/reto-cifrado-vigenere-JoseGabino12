@@ -1,17 +1,16 @@
+# rubocop:disable Style/FrozenStringLiteralComment
 # Class to encrypt a message using the Vigenere cipher
+# rubocop:enable Style/FrozenStringLiteralComment
 class Cifrado
   def initialize(key, message)
-    @key = key
-    @message = message
+    @key = key.upcase
+    @message = message.upcase
   end
 
-  def encrypt
-    message = @message.upcase
-    key = @key.upcase
+  # Convert the message and key to numbers
+  def convert_to_numbers(message, key)
     message_numbers = []
     key_numbers = []
-    encrypted_numbers = []
-    encrypted_message = ''
 
     message.each_char do |char|
       message_numbers << char.ord - 65
@@ -21,10 +20,21 @@ class Cifrado
       key_numbers << char.ord - 65
     end
 
-    key_numbers *= (message_numbers.length / key_numbers.length + 1)
+    [message_numbers, key_numbers]
+  end
 
-    message_numbers.each_with_index do |number, index|
-      encrypted_numbers << (number + key_numbers[index]) % 26
+  # Repeat the key to match the message length
+  def repeat_key(message, key)
+    key * (message.length / key.length + 1)
+  end
+
+  # Encrypt the message
+  def encrypt(message, key)
+    encrypted_message = ''
+    encrypted_numbers = []
+
+    message.each_with_index do |number, index|
+      encrypted_numbers << (number + key[index]) % 26
     end
 
     encrypted_numbers.each do |number|
@@ -38,5 +48,10 @@ end
 key = 'SECRETO'
 message = 'HOLA'
 
-cifrado = Cifrado.new(key, message)
-puts cifrado.encrypt
+encrypted = Cifrado.new(key, message)
+message_numbers, key_numbers = encrypted.convert_to_numbers(message, key)
+key_repeated = encrypted.repeat_key(message_numbers, key_numbers)
+
+puts "Message: #{message}"
+puts "Key: #{key} \n\n"
+puts encrypted.encrypt(message_numbers, key_repeated)
